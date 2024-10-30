@@ -4,7 +4,7 @@
 Note: 
 
 - Don't share any API key, secret key, or password.
-- Any questions, please contact: `Discord/Wechat ID: squawkwallstreet`.
+- Any questions, please contact: (https://t.me/futurestar425).
 
 <br>
 
