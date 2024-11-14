@@ -38,7 +38,7 @@ class Your_Strategy(Strategy):
 
     def __init__(self, trader):
         super().__init__()
-        self.strategy_name = "Type your strategy name here"
+        self.strategy_name = "AlphaBets"
         self.trader = trader
 
         """⬇️⬇️⬇️ Strategy Settings ⬇️⬇️⬇️"""
