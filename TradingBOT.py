@@ -13,7 +13,7 @@
 from moomoo import *
 import schedule
 
-from discord_bot.discord_notify_human import send_msg_to_discord_request
+from telegram_bot.telegram_notify import send_msg_to_telegram
 from env._secrete import MooMoo_PWD
 from strategy.Your_Strategy import Your_Strategy
 from utils.dataIO import get_current_time, print_current_time, logging_info

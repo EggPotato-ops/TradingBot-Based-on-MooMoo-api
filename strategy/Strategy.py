@@ -1,4 +1,4 @@
-from discord_bot.discord_notify_human import send_msg_to_discord_request
+from telegram_bot.telegram_notify import send_msg_to_telegram
 from quoter.quoter_Webull import Quoter_Webull
 from quoter.quoter_Yahoo import Quoter_Yahoo
 from utils.dataIO import get_current_time, logging_info
@@ -81,8 +81,8 @@ class Strategy:
         msg += f'{get_current_time()}\n'
         msg += msg_body
         msg += '```\n'
-        send_msg_to_discord_request(msg, channel_id=your_channel_id)
-        logging_info(f"Strategy: {self.strategy_name} Status: Discord msg sent")
+        send_msg_to_telegram(msg, chat_id=your_channel_id)
+        logging_info(f"Strategy: {self.strategy_name} Status: Telegram msg sent")
 
     def get_current_position(self):
         pass

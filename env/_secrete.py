@@ -4,11 +4,11 @@ Important, please don't share with the public
 
 """ MooMoo trading setup """
 # trading password, 6 digits
-MooMoo_PWD = '123456'
+MooMoo_PWD = ''
 
 
-""" Discord setup to send notification """
-# replace with your own discord bot token
-discord_web_Auth = '*************************************'
-# server channel id
-your_channel_id = 111111111111111111111111
+""" Telegram setup to send notification """
+# Replace with your Telegram bot token
+telegram_bot_token = '7'
+# Replace with your Telegram chat ID
+telegram_chat_id = ''
