@@ -23,7 +23,7 @@ from utils.time_tool import check_if_weekday, is_market_and_extended_hours, is_t
 MOOMOOOPEND_ADDRESS = "127.0.0.1"  # be same as the OpenD host IP
 MOOMOOOPEND_PORT = 11111  # be same as the OpenD port number
 
-TRADING_ENVIRONMENT = TrdEnv.REAL
+TRADING_ENVIRONMENT = TrdEnv.SIMULATE
 # REAL = "REAL"
 # SIMULATE = "SIMULATE"
 

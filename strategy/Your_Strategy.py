@@ -23,8 +23,8 @@ import yfinance as yf
 from moomoo import *
 
 # from TradingBOT import BOT_MAX_TRADING_LIMIT, ACCOUNT_CASH_THRESHOLD
-# from discord_bot.discord_notify_bot import run_bot_send_msg_new_thread
-from env._secrete import your_channel_id
+from telegram_bot.telegram_notify import send_msg_to_telegram
+from env._secrete import telegram_bot_token, telegram_chat_id
 from strategy.Strategy import Strategy
 import pandas_ta as pta
 from utils import play_sound
@@ -71,60 +71,50 @@ class Your_Strategy(Strategy):
     def strategy_decision(self):
         print("Strategy Decision running...")
 
-        """A Simple Example Strategy from chatGPT"""
-        # Strategy starts here
+        dfstream = self.get_candles_frame(70)
+        signal = self.total_signal(dfstream, dfstream.index[-1], 7)  # current candle looking for open price entry
 
-        for stock in self.stock_tracking_list:
+        slatr = self.slatrcoef * dfstream.ATR.iloc[-1]
+        TPSLRatio = self.TPSLRatio_coef
+        max_spread = 16e-5
 
-            # 1. get the stock data from quoter, return a pandas dataframe
-            data = yf.Ticker(stock).history(interval="1h", actions=False, prepost=False, raise_errors=True)
+        candle = self.get_candles(1)[-1]
+        candle_open_bid = float(str(candle.bid.o))
+        candle_open_ask = float(str(candle.ask.o))
+        spread = candle_open_ask - candle_open_bid
 
-            # 2. calculate the indicator
-            data['RSI'] = pta.rsi(data['Close'], length=14)
+        print(f"Signal: {signal}, Spread: {spread}, Opened Trades: {self.count_opened_trades()}")
 
-            pre_rsi = data['RSI'][-2]
-            qty = 99
-            price = data['Close'][-1]
+        SLBuy = candle_open_bid - slatr - spread
+        SLSell = candle_open_ask + slatr + spread
 
-            # 3. check the strategy condition,
-            # For this example, simply buy when rsi < 30, sell when rsi > 70
-            if pre_rsi < 30 and self.enable_buy:
-                print('buy point start')
-                ret, data = self.trader.limit_buy(stock, qty, price)
-                if ret == RET_OK:
-                    # order placed successfully:
-                    self.save_trading_status('BUY', stock, price, 'strategy_decision')
-                    self.save_order_history(data, 'strategy_decision')
-                    self.update_strategy_position('success', stock, price, qty, 'BUY')
-                    play_sound.order_placed()
-                    self.enable_buy = False
-                    self.enable_sell = True
-                else:
-                    # order failed
-                    print(f"{get_current_time()}: place_order error, {data}")
-                    logging_info(f'place_order error, {data}')
-                    # self.send_notification_via_discord(data, channel_id_dev_bot)
+        TPBuy = candle_open_ask + slatr * TPSLRatio + spread
+        TPSell = candle_open_bid - slatr * TPSLRatio - spread
 
-            elif pre_rsi > 70 and self.enable_sell:
-                print('sell point start')
-                ret, data = self.trader.limit_sell(stock, qty, price)
-                if ret == RET_OK:
-                    # order placed successfully:
-                    self.save_trading_status('SELL', stock, price, 'strategy_decision')
-                    self.save_order_history(data, 'strategy_decision')
-                    self.update_strategy_position('success', stock, price, qty, 'SELL')
-                    play_sound.order_placed()
-                    self.enable_buy = True
-                    self.enable_sell = False
-                else:
-                    print(f"{get_current_time()}: place_order error, {data}")
-                    logging_info(f'place_order error, {data}')
-                    # self.send_notification_via_discord(data, channel_id_dev_bot)
+        current_balance = self.get_account_balance()
+        if current_balance < self.previous_balance:
+            self.i += 1  # Increment 'i' on a loss
+        else:
+            self.i = 0
 
-            # Strategy ends here
-            """A Simple Example Strategy from chatGPT"""
+        # Determine whether to invert the signal logic
+        if self.i == 1:  # If 'i' is odd, invert the trading logic
+            signal = 3 - signal  # 1 becomes 2 (sell), and 2 becomes 1 (buy)
 
-            time.sleep(1)  # sleep 1 second to avoid the quote limit
+        self.previous_balance = current_balance
+        self.last_signal = signal  # Store the last signal used
+
+        # Sell
+        if signal == 1 and self.count_opened_trades() == 0 and spread < max_spread:
+            print("Sell Signal Found...")
+            # Replace with moomoo API call for selling
+            # Example: self.trader.sell("EUR_USD", self.lotsize, TPSell, SLSell)
+
+        # Buy
+        elif signal == 2 and self.count_opened_trades() == 0 and spread < max_spread:
+            print("Buy Signal Found...")
+            # Replace with moomoo API call for buying
+            # Example: self.trader.buy("EUR_USD", self.lotsize, TPBuy, SLBuy)
 
         print("Strategy checked... Waiting next decision called...")
         print('-----------------------------------------------')
@@ -154,12 +144,12 @@ class Your_Strategy(Strategy):
 
     def save_trading_status(self, order_direction, stock, order_price, called_by):
         logging_info(f'{get_current_time()}: {order_direction}, {stock} @ ${order_price}, {called_by} \n')
-        # send the message to Discord channel
+        # send the message to telegram channel
         msg_body = ""
         msg_body += f"{order_direction}, {stock} @ ${order_price} \n"
         print(msg_body)
-        # uncomment the code below if you need to send the notification to Discord
-        # self.send_notification_via_discord(msg_body, your_channel_id)
+        # uncomment the code below if you need to send the notification to telegram
+        send_msg_to_telegram(msg_body)
 
     def save_order_history(self, data, called_by):
         file_data = read_json_file("order_history.json")
