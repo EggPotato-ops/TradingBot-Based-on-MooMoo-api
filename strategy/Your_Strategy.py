@@ -68,10 +68,33 @@ class Your_Strategy(Strategy):
     Define your own strategy here:
     """
 
+    def get_candles_frame(self, symbol, period, interval):
+        """
+        Fetches candle data for a given symbol using the moomoo API.
+
+        :param symbol: The stock symbol to fetch data for.
+        :param period: The number of periods to fetch.
+        :param interval: The interval for each candle (e.g., '1d', '1h').
+        :return: A DataFrame containing the candle data.
+        """
+        try:
+            # Assuming moomooapi has a method to get historical data
+            candles = self.trader.get_historical_data(symbol, period=period, interval=interval)
+            # Convert the data to a DataFrame if needed
+            df = pd.DataFrame(candles)
+            return df
+        except Exception as e:
+            print(f"Error fetching candle data: {e}")
+            return None
+
     def strategy_decision(self):
         print("Strategy Decision running...")
 
-        dfstream = self.get_candles_frame(70)
+        dfstream = self.get_candles_frame("SPY", 70, "1d")
+        if dfstream is None:
+            print("Failed to retrieve candle data.")
+            return
+
         signal = self.total_signal(dfstream, dfstream.index[-1], 7)  # current candle looking for open price entry
 
         slatr = self.slatrcoef * dfstream.ATR.iloc[-1]
